@@ -155,12 +155,22 @@ const EnvSchema = z
     DB_POOL_MAX: optionalPositiveInt(),
     DB_POOL_IDLE_TIMEOUT_MS: optionalPositiveInt(),
     DB_POOL_CONNECTION_TIMEOUT_MS: optionalPositiveInt(),
-    DB_RETRY_ATTEMPTS: z.coerce.number().int().positive().default(5).describe(
-      'Maximum number of connection retry attempts during pool initialization. Default 5.',
-    ),
-    DB_RETRY_BACKOFF_MS: z.coerce.number().int().positive().default(1000).describe(
-      'Base delay in milliseconds for exponential backoff between connection retries. Default 1000ms.',
-    ),
+    DB_RETRY_ATTEMPTS: z.coerce
+      .number()
+      .int()
+      .positive()
+      .default(5)
+      .describe(
+        'Maximum number of connection retry attempts during pool initialization. Default 5.',
+      ),
+    DB_RETRY_BACKOFF_MS: z.coerce
+      .number()
+      .int()
+      .positive()
+      .default(1000)
+      .describe(
+        'Base delay in milliseconds for exponential backoff between connection retries. Default 1000ms.',
+      ),
 
     SWAGGER_ENABLED: optionalBool().describe(
       'Serve Swagger UI and the OpenAPI JSON; defaults to true outside production, false in production',
@@ -212,6 +222,31 @@ const EnvSchema = z
       .positive()
       .default(1000)
       .describe('Base delay (ms) for exponential backoff in Discord retry logic. Default 1s.'),
+
+    // Platform Balance Monitoring (#730)
+    STELLAR_PLATFORM_ADDRESS: z
+      .preprocess(
+        blankToUndefined,
+        z
+          .string()
+          .regex(/^G[A-Z2-7]{55}$/)
+          .optional(),
+      )
+      .describe('Platform Stellar account address to monitor balance (G... format)'),
+    STELLAR_LOW_BALANCE_THRESHOLD: z.coerce
+      .number()
+      .positive()
+      .default(1)
+      .describe(
+        'Balance threshold (XLM) below which a low-balance warning is triggered. Default 1 XLM.',
+      ),
+    STELLAR_CRITICAL_BALANCE_THRESHOLD: z.coerce
+      .number()
+      .positive()
+      .default(0.5)
+      .describe(
+        'Balance threshold (XLM) below which a critical alert is triggered. Default 0.5 XLM.',
+      ),
 
     // Rate Limiting Configuration
     RATE_LIMIT_ABUSE_WINDOW_SECONDS: z.coerce.number().int().positive().default(300),
@@ -279,18 +314,18 @@ const EnvSchema = z
     IPFS_PROVIDER_TIMEOUT_MS: z.coerce.number().int().positive().default(30000),
 
     // S3-compatible Storage Configuration (avatar uploads)
-    S3_BUCKET: z.preprocess(blankToUndefined, z.string().optional()).describe(
-      'S3 bucket name for avatar uploads. Required in production.',
-    ),
-    S3_REGION: z.preprocess(blankToUndefined, z.string().optional()).describe(
-      'AWS region (or equivalent) for the S3 bucket.',
-    ),
-    S3_ACCESS_KEY_ID: z.preprocess(blankToUndefined, z.string().optional()).describe(
-      'AWS / S3-compatible access key ID.',
-    ),
-    S3_SECRET_ACCESS_KEY: z.preprocess(blankToUndefined, z.string().optional()).describe(
-      'AWS / S3-compatible secret access key.',
-    ),
+    S3_BUCKET: z
+      .preprocess(blankToUndefined, z.string().optional())
+      .describe('S3 bucket name for avatar uploads. Required in production.'),
+    S3_REGION: z
+      .preprocess(blankToUndefined, z.string().optional())
+      .describe('AWS region (or equivalent) for the S3 bucket.'),
+    S3_ACCESS_KEY_ID: z
+      .preprocess(blankToUndefined, z.string().optional())
+      .describe('AWS / S3-compatible access key ID.'),
+    S3_SECRET_ACCESS_KEY: z
+      .preprocess(blankToUndefined, z.string().optional())
+      .describe('AWS / S3-compatible secret access key.'),
     S3_ENDPOINT: z
       .preprocess(blankToUndefined, z.string().url().optional())
       .describe(
